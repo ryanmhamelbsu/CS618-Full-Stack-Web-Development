@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test, beforeAll } from '@jest/globals'
 import {
   createPost,
   listAllPosts,
@@ -10,36 +10,44 @@ import {
   deletePost,
 } from '../services/posts.js'
 import { Post } from '../db/models/post.js'
+import { createUser } from '../services/users.js'
+
+let testUser = null
+
+beforeAll(async () => {
+  testUser = await createUser({
+    username: 'sample',
+    password: 'user',
+  })
+})
 
 describe('creating posts', () => {
   test('with all parameters should succeed', async () => {
     const post = {
       title: 'Hello Mongoose!',
-      author: 'John Doe',
       contents: 'This is my first post',
       tags: ['mongoose', 'mongodb'],
     }
 
-    const createdPost = await createPost(post)
+    const createdPost = await createPost(testUser._id, post)
 
     expect(createdPost._id).toBeInstanceOf(mongoose.Types.ObjectId)
 
     const foundPost = await Post.findById(createdPost._id)
     expect(foundPost.title).toEqual(post.title)
-    expect(foundPost.author).toEqual(post.author)
+    expect(foundPost.author).toEqual(testUser._id.toString())
     expect(foundPost.contents).toEqual(post.contents)
     expect(foundPost.tags).toEqual(post.tags)
   })
 
   test('without title should fail', async () => {
     const post = {
-      author: 'John Doe',
       contents: 'Post with no title',
       tags: ['empty'],
     }
 
     try {
-      await createPost(post)
+      await createPost(testUser._id, post)
     } catch (err) {
       expect(err).toBeInstanceOf(mongoose.Error.ValidationError)
     }
@@ -50,33 +58,37 @@ describe('creating posts', () => {
       title: 'Only a title',
     }
 
-    const createdPost = await createPost(post)
+    const createdPost = await createPost(testUser._id, post)
 
     expect(createdPost._id).toBeInstanceOf(mongoose.Types.ObjectId)
   })
 })
 
 describe('listing posts', () => {
-  const samplePosts = [
-    {
-      title: 'Learning Mongoose',
-      author: 'John Doe',
-      contents: 'Learning about Mongoose',
-      tags: ['mongoose', 'mongodb'],
-    },
-    {
-      title: 'Learning React',
-      author: 'Jane Doe',
-      contents: 'Learning about React',
-      tags: ['react', 'javascript'],
-    },
-    {
-      title: 'Learning Node',
-      author: 'John Doe',
-      contents: 'Learning about Node',
-      tags: ['node', 'javascript'],
-    },
-  ]
+  let samplePosts = []
+
+  beforeAll(() => {
+    samplePosts = [
+      {
+        title: 'Learning Mongoose',
+        author: testUser._id,
+        contents: 'Learning about Mongoose',
+        tags: ['mongoose', 'mongodb'],
+      },
+      {
+        title: 'Learning React',
+        author: testUser._id,
+        contents: 'Learning about React',
+        tags: ['react', 'javascript'],
+      },
+      {
+        title: 'Learning Node',
+        author: testUser._id,
+        contents: 'Learning about Node',
+        tags: ['node', 'javascript'],
+      },
+    ]
+  })
 
   test('should return all posts', async () => {
     await Post.deleteMany({})
@@ -105,10 +117,9 @@ describe('listing posts', () => {
     await Post.deleteMany({})
     await Post.insertMany(samplePosts)
 
-    const posts = await listPostsByAuthor('John Doe')
+    const posts = await listPostsByAuthor(testUser._id)
 
-    expect(posts.length).toEqual(2)
-    expect(posts.every((post) => post.author === 'John Doe')).toBe(true)
+    expect(posts.length).toEqual(3)
   })
 
   test('should return posts by tag', async () => {
@@ -124,9 +135,8 @@ describe('listing posts', () => {
 
 describe('getting, updating, and deleting posts', () => {
   test('should get a post by id', async () => {
-    const post = await createPost({
+    const post = await createPost(testUser._id, {
       title: 'Get this post',
-      author: 'John Doe',
       contents: 'Post contents',
       tags: ['test'],
     })
@@ -138,35 +148,31 @@ describe('getting, updating, and deleting posts', () => {
   })
 
   test('should update a post', async () => {
-    const post = await createPost({
+    const post = await createPost(testUser._id, {
       title: 'Original title',
-      author: 'John Doe',
       contents: 'Original contents',
       tags: ['original'],
     })
 
-    const updatedPost = await updatePost(post._id, {
+    const updatedPost = await updatePost(testUser._id, post._id, {
       title: 'Updated title',
-      author: 'Jane Doe',
       contents: 'Updated contents',
       tags: ['updated'],
     })
 
     expect(updatedPost.title).toEqual('Updated title')
-    expect(updatedPost.author).toEqual('Jane Doe')
     expect(updatedPost.contents).toEqual('Updated contents')
     expect(updatedPost.tags).toEqual(['updated'])
   })
 
   test('should delete a post', async () => {
-    const post = await createPost({
+    const post = await createPost(testUser._id, {
       title: 'Delete this post',
-      author: 'John Doe',
       contents: 'This post will be deleted',
       tags: ['delete'],
     })
 
-    const result = await deletePost(post._id)
+    const result = await deletePost(testUser._id, post._id)
 
     expect(result.deletedCount).toEqual(1)
 
@@ -174,3 +180,4 @@ describe('getting, updating, and deleting posts', () => {
     expect(deletedPost).toBeNull()
   })
 })
+
