@@ -1,31 +1,31 @@
 import { useQuery } from '@tanstack/react-query'
-import { getPosts } from '../api/posts.js'
-import { PostList } from '../components/PostList.jsx'
-import { CreatePost } from '../components/CreatePost.jsx'
+import { getRecipes } from '../api/recipes.js'
+import { RecipeList } from '../components/RecipeList.jsx'
+import { CreateRecipe } from '../components/CreateRecipe.jsx'
 import { Header } from '../components/Header.jsx'
 
 export function Blog() {
-  const postsQuery = useQuery({
-    queryKey: ['posts'],
-    queryFn: () => getPosts({}),
+  const recipesQuery = useQuery({
+    queryKey: ['recipes'],
+    queryFn: () => getRecipes({}),
   })
 
-  const posts = postsQuery.data ?? []
+  const recipes = recipesQuery.data ?? []
 
   return (
     <div>
       <Header />
+
       <br />
       <hr />
 
-      <h1>Blog</h1>
+      <h1>Recipe Sharing App</h1>
 
-      <CreatePost />
+      <CreateRecipe />
 
       <hr />
 
-      <PostList posts={posts} />
+      <RecipeList recipes={recipes} />
     </div>
   )
 }
-
