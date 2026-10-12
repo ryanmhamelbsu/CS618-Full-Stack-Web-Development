@@ -7,10 +7,7 @@ export function RecipeList({ recipes = [] }) {
       {recipes.map((recipe) => (
         <Recipe
           key={recipe._id}
-          title={recipe.title}
-          ingredients={recipe.ingredients}
-          image={recipe.image}
-          author={recipe.author}
+          {...recipe}
         />
       ))}
     </div>
