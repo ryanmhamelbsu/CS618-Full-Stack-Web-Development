@@ -32,13 +32,29 @@ export function RecipeStats({ recipeId }) {
     return <div>Failed to load recipe statistics.</div>
   }
 
-  const chartData = (dailyViews.data ?? []).map((d) => ({
-    x: new Date(d._id),
-    y: d.views,
-    label: `${new Date(d._id).toLocaleDateString()}: ${d.views} views`,
-  }))
+  const chartData = (dailyViews.data ?? []).map((d, index) => {
+    const date = new Date(d._id)
 
-  const tickCount = Math.min(chartData.length, 5)
+    return {
+      x: index + 1,
+      y: d.views,
+      dateLabel: date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      }),
+      label: `${date.toLocaleDateString()}: ${d.views} views`,
+    }
+  })
+
+  const tickValues = chartData
+    .filter((_, index) => {
+      if (chartData.length <= 6) return true
+
+      const interval = Math.ceil(chartData.length / 6)
+      return index % interval === 0 ||
+        index === chartData.length - 1
+    })
+    .map((d) => d.x)
 
   return (
     <div>
@@ -47,53 +63,57 @@ export function RecipeStats({ recipeId }) {
       <div style={{ width: 600, maxWidth: '100%' }}>
         <h3>Daily Views</h3>
 
-        <VictoryChart
-          domainPadding={20}
-          padding={{
-            top: 30,
-            bottom: 85,
-            left: 55,
-            right: 30,
-          }}
-        >
-          <VictoryAxis
-            tickCount={tickCount}
-            tickFormat={(date) =>
-              new Date(date).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-              })
-            }
-            style={{
-              tickLabels: {
-                angle: -35,
-                fontSize: 10,
-                textAnchor: 'end',
-                padding: 12,
-              },
+        {chartData.length === 0 ? (
+          <p>No daily views recorded yet.</p>
+        ) : (
+          <VictoryChart
+            domainPadding={{ x: 40, y: 15 }}
+            padding={{
+              top: 30,
+              bottom: 80,
+              left: 55,
+              right: 30,
             }}
-          />
+          >
+            <VictoryAxis
+              tickValues={tickValues}
+              tickFormat={(value) =>
+                chartData.find((d) => d.x === value)?.dateLabel ?? ''
+              }
+              style={{
+                tickLabels: {
+                  angle: chartData.length > 1 ? -35 : 0,
+                  fontSize: 11,
+                  textAnchor: chartData.length > 1 ? 'end' : 'middle',
+                  padding: 12,
+                },
+              }}
+            />
 
-          <VictoryAxis
-            dependentAxis
-            tickFormat={(value) => Math.round(value)}
-            style={{
-              tickLabels: {
-                fontSize: 11,
-              },
-            }}
-          />
+            <VictoryAxis
+              dependentAxis
+              tickFormat={(value) =>
+                Number.isInteger(value) ? value : ''
+              }
+              style={{
+                tickLabels: {
+                  fontSize: 11,
+                },
+              }}
+            />
 
-          <VictoryBar
-            data={chartData}
-            labelComponent={<VictoryTooltip />}
-            style={{
-              data: {
-                fill: '#444',
-              },
-            }}
-          />
-        </VictoryChart>
+            <VictoryBar
+              data={chartData}
+              barWidth={chartData.length === 1 ? 35 : undefined}
+              labelComponent={<VictoryTooltip />}
+              style={{
+                data: {
+                  fill: '#444',
+                },
+              }}
+            />
+          </VictoryChart>
+        )}
       </div>
     </div>
   )
