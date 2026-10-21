@@ -1,3 +1,4 @@
+
 import mongoose, { Schema } from 'mongoose'
 
 const recipeSchema = new Schema(
@@ -10,6 +11,12 @@ const recipeSchema = new Schema(
     },
     ingredients: [String],
     image: String,
+    likes: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'user',
+      },
+    ],
   },
   { timestamps: true },
 )

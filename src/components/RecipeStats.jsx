@@ -1,9 +1,11 @@
+
 import { useQuery } from '@tanstack/react-query'
 import PropTypes from 'prop-types'
 import {
   VictoryChart,
   VictoryTooltip,
   VictoryBar,
+  VictoryAxis,
 } from 'victory'
 
 import {
@@ -30,21 +32,66 @@ export function RecipeStats({ recipeId }) {
     return <div>Failed to load recipe statistics.</div>
   }
 
+  const chartData = (dailyViews.data ?? []).map((d) => ({
+    x: new Date(d._id),
+    y: d.views,
+    label: `${new Date(d._id).toLocaleDateString()}: ${d.views} views`,
+  }))
+
+  const tickCount = Math.min(chartData.length, 5)
+
   return (
     <div>
       <b>{totalViews.data?.views} total views</b>
 
-      <div style={{ width: 512, maxWidth: '100%' }}>
+      <div style={{ width: 600, maxWidth: '100%' }}>
         <h3>Daily Views</h3>
 
-        <VictoryChart domainPadding={16}>
+        <VictoryChart
+          domainPadding={20}
+          padding={{
+            top: 30,
+            bottom: 85,
+            left: 55,
+            right: 30,
+          }}
+        >
+          <VictoryAxis
+            tickCount={tickCount}
+            tickFormat={(date) =>
+              new Date(date).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+              })
+            }
+            style={{
+              tickLabels: {
+                angle: -35,
+                fontSize: 10,
+                textAnchor: 'end',
+                padding: 12,
+              },
+            }}
+          />
+
+          <VictoryAxis
+            dependentAxis
+            tickFormat={(value) => Math.round(value)}
+            style={{
+              tickLabels: {
+                fontSize: 11,
+              },
+            }}
+          />
+
           <VictoryBar
+            data={chartData}
             labelComponent={<VictoryTooltip />}
-            data={dailyViews.data?.map((d) => ({
-              x: new Date(d._id),
-              y: d.views,
-              label: `${new Date(d._id).toLocaleDateString()}: ${d.views} views`,
-            }))}
+            style={{
+              data: {
+                fill: '#444',
+              },
+            }}
           />
         </VictoryChart>
       </div>

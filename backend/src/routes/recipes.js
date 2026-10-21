@@ -1,8 +1,10 @@
+
 import {
   createRecipe,
   listAllRecipes,
   listRecipesByAuthor,
   getRecipeById,
+  likeRecipe,
   updateRecipe,
   deleteRecipe,
 } from '../services/recipes.js'
@@ -47,6 +49,21 @@ export function recipesRoutes(app) {
       return res.json(recipe)
     } catch (err) {
       console.error('error creating recipe', err)
+      return res.status(500).end()
+    }
+  })
+
+  app.post('/api/v1/recipes/:id/like', requireAuth, async (req, res) => {
+    try {
+      const recipe = await likeRecipe(req.auth.sub, req.params.id)
+
+      if (recipe === null) {
+        return res.status(404).end()
+      }
+
+      return res.json(recipe)
+    } catch (err) {
+      console.error('error liking recipe', err)
       return res.status(500).end()
     }
   })

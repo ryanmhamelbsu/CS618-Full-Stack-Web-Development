@@ -1,4 +1,5 @@
-export const getRecipes = async (queryParams) => {
+
+export const getRecipes = async (queryParams = {}) => {
   const res = await fetch(
     `${import.meta.env.VITE_BACKEND_URL}/recipes?` +
       new URLSearchParams(queryParams),
@@ -31,5 +32,20 @@ export const createRecipe = async (token, recipe) => {
   )
 
   if (!res.ok) throw new Error('failed to create recipe')
+  return await res.json()
+}
+
+export const likeRecipe = async (token, recipeId) => {
+  const res = await fetch(
+    `${import.meta.env.VITE_BACKEND_URL}/recipes/${recipeId}/like`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  )
+
+  if (!res.ok) throw new Error('failed to like recipe')
   return await res.json()
 }

@@ -1,3 +1,4 @@
+
 import PropTypes from 'prop-types'
 import { Recipe } from './Recipe.jsx'
 
@@ -22,6 +23,7 @@ RecipeList.propTypes = {
       ingredients: PropTypes.arrayOf(PropTypes.string).isRequired,
       image: PropTypes.string,
       author: PropTypes.string,
+      likes: PropTypes.arrayOf(PropTypes.string),
     }),
   ),
 }

@@ -1,6 +1,10 @@
+
 import PropTypes from 'prop-types'
 import { Link } from 'react-router-dom'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { User } from './User.jsx'
+import { useAuth } from '../contexts/AuthContext.jsx'
+import { likeRecipe } from '../api/recipes.js'
 
 export function Recipe({
   _id,
@@ -8,8 +12,24 @@ export function Recipe({
   ingredients,
   image,
   author,
+  likes = [],
   fullRecipe = false,
 }) {
+  const [token] = useAuth()
+  const queryClient = useQueryClient()
+
+  const likeMutation = useMutation({
+    mutationFn: () => likeRecipe(token, _id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recipes'] })
+      queryClient.invalidateQueries({ queryKey: ['recipe', _id] })
+    },
+  })
+
+  const handleLike = () => {
+    likeMutation.mutate()
+  }
+
   return (
     <article>
       <h3>
@@ -41,6 +61,24 @@ export function Recipe({
           Written by <User id={author} />
         </em>
       )}
+
+      <p>
+        <strong>Likes: {likes?.length ?? 0}</strong>
+      </p>
+
+      {fullRecipe && token && (
+        <button
+          type='button'
+          onClick={handleLike}
+          disabled={likeMutation.isPending}
+        >
+          {likeMutation.isPending ? 'Liking...' : 'Like Recipe'}
+        </button>
+      )}
+
+      {likeMutation.isError && (
+        <p>Unable to like recipe.</p>
+      )}
     </article>
   )
 }
@@ -51,5 +89,6 @@ Recipe.propTypes = {
   ingredients: PropTypes.arrayOf(PropTypes.string).isRequired,
   image: PropTypes.string,
   author: PropTypes.string,
+  likes: PropTypes.arrayOf(PropTypes.string),
   fullRecipe: PropTypes.bool,
 }
