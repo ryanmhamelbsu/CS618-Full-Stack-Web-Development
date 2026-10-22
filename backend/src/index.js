@@ -1,3 +1,4 @@
+
 import 'dotenv/config'
 import { createServer } from 'http'
 import { Server } from 'socket.io'
@@ -18,9 +19,13 @@ try {
     },
   })
 
+  // Make Socket.IO available to the recipe routes
+  app.set('io', io)
+
   io.on('connection', (socket) => {
     console.log('A user connected:', socket.id)
 
+    // Existing real-time chat functionality
     socket.on('chat message', (message) => {
       io.emit('chat message', message)
     })

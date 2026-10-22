@@ -46,6 +46,18 @@ export function recipesRoutes(app) {
   app.post('/api/v1/recipes', requireAuth, async (req, res) => {
     try {
       const recipe = await createRecipe(req.auth.sub, req.body)
+
+      // Broadcast the new recipe to all connected users
+      const io = req.app.get('io')
+
+      if (io) {
+        io.emit('recipe.added', {
+          _id: recipe._id,
+          title: recipe.title,
+          author: recipe.author,
+        })
+      }
+
       return res.json(recipe)
     } catch (err) {
       console.error('error creating recipe', err)

@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getRecipes } from '../api/recipes.js'
@@ -5,6 +6,7 @@ import { RecipeList } from '../components/RecipeList.jsx'
 import { CreateRecipe } from '../components/CreateRecipe.jsx'
 import { Header } from '../components/Header.jsx'
 import { Chat } from '../components/Chat.jsx'
+import { RecipeNotifications } from '../components/RecipeNotifications.jsx'
 
 export function Blog() {
   const [sortOrder, setSortOrder] = useState('descending')
@@ -23,6 +25,8 @@ export function Blog() {
   return (
     <div>
       <Header />
+
+      <RecipeNotifications />
 
       <br />
       <hr />
